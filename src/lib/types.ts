@@ -37,26 +37,26 @@ export type DbFriendRequest = {
 }
 
 // 連続日数を計算する共通ユーティリティ
+// practiced_at は UTC 日付文字列（YYYY-MM-DD）で保存されているため、
+// 比較もすべて UTC ベースで統一する
 export function calcStreak(practicedDates: string[]): number {
   if (practicedDates.length === 0) return 0
   const dates = new Set(practicedDates)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
 
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
-  const prev = (d: Date) => new Date(d.getTime() - 86400000)
+  const utcDay = (offsetDays: number) =>
+    new Date(Date.now() - offsetDays * 86400000).toISOString().slice(0, 10)
 
-  const todayStr = fmt(today)
-  const yesterdayStr = fmt(prev(today))
+  const todayStr     = utcDay(0)
+  const yesterdayStr = utcDay(1)
 
   // 今日も昨日も練習していなければ streak = 0
   if (!dates.has(todayStr) && !dates.has(yesterdayStr)) return 0
 
-  let cur = dates.has(todayStr) ? today : prev(today)
   let streak = 0
-  while (dates.has(fmt(cur))) {
+  let offset = dates.has(todayStr) ? 0 : 1
+  while (dates.has(utcDay(offset))) {
     streak++
-    cur = prev(cur)
+    offset++
   }
   return streak
 }

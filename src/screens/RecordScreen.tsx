@@ -64,6 +64,12 @@ export function RecordScreen({ instrument, onSaved }: Props) {
     return parseInt(manualMin) || 0
   }
 
+  const canSave = () => {
+    if (getDurationMin() === 0) return false
+    if (type === 'song' && !song) return false
+    return true
+  }
+
   const handleAddNewSong = async () => {
     if (!newSongTitle.trim() || !user) return
     const title = newSongTitle.trim()
@@ -78,9 +84,8 @@ export function RecordScreen({ instrument, onSaved }: Props) {
   }
 
   const handleSave = async () => {
-    if (!user) return
+    if (!user || !canSave()) return
     const durationMin = getDurationMin()
-    if (durationMin === 0) return
 
     setSaving(true)
     const today = new Date().toISOString().slice(0, 10)
@@ -250,16 +255,21 @@ export function RecordScreen({ instrument, onSaved }: Props) {
       </Card>
 
       <div style={{ padding: '6px 14px 24px' }}>
-        <button onClick={handleSave} disabled={saving || getDurationMin() === 0} style={{
+        <button onClick={handleSave} disabled={saving || !canSave()} style={{
           width: '100%', padding: 14, borderRadius: 10, border: 'none',
-          background: saved ? t.green : getDurationMin() === 0 ? t.dim : t.accent,
+          background: saved ? t.green : !canSave() ? t.dim : t.accent,
           color: '#fff', fontSize: 14, fontWeight: 600,
-          cursor: getDurationMin() === 0 ? 'default' : 'pointer',
+          cursor: !canSave() ? 'default' : 'pointer',
           transition: 'all 0.3s',
         }}>{saving ? '保存中…' : saved ? '✓ 記録した' : '記録する'}</button>
         {getDurationMin() === 0 && (
           <div style={{ fontSize: 11, color: t.muted, textAlign: 'center', marginTop: 8 }}>
             練習時間を入力してください
+          </div>
+        )}
+        {getDurationMin() > 0 && type === 'song' && !song && (
+          <div style={{ fontSize: 11, color: t.muted, textAlign: 'center', marginTop: 8 }}>
+            曲を選択してください
           </div>
         )}
       </div>
