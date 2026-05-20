@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 背景：クリーム色の丸 -->
+  <rect width="512" height="512" rx="114" fill="#f7f4ef"/>
+  <!-- テラコッタの丸 -->
+  <circle cx="256" cy="256" r="200" fill="#b86a2a" opacity="0.12"/>
+  <!-- ギター記号（シンプルな形） -->
+  <text x="256" y="330" font-size="260" text-anchor="middle" font-family="Apple Color Emoji,Segoe UI Emoji,sans-serif">🎸</text>
+</svg>
