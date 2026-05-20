@@ -2,23 +2,14 @@ import { useState } from 'react'
 import { t, font, fontI } from '../theme'
 import { useAuth } from '../context/AuthContext'
 
-type Step = 'email' | 'code'
-
 export function AuthScreen() {
-  const { signInWithEmail, verifyOtp } = useAuth()
+  const { signInWithEmail } = useAuth()
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [step, setStep] = useState<Step>('email')
+  const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const inp = {
-    width: '100%', background: t.bgCard, border: `1px solid ${t.border}`,
-    borderRadius: 10, padding: '13px 16px', color: t.text,
-    fontSize: 15, outline: 'none', boxSizing: 'border-box' as const, marginBottom: 12,
-  }
-
-  const handleSendCode = async () => {
+  const handleSubmit = async () => {
     if (!email.trim()) return
     setLoading(true)
     setError('')
@@ -27,18 +18,7 @@ export function AuthScreen() {
     if (error) {
       setError(`エラー: ${error.message}`)
     } else {
-      setStep('code')
-    }
-  }
-
-  const handleVerify = async () => {
-    if (code.length !== 6) return
-    setLoading(true)
-    setError('')
-    const { error } = await verifyOtp(email.trim(), code.trim())
-    setLoading(false)
-    if (error) {
-      setError('コードが正しくありません。再度確認してください。')
+      setSent(true)
     }
   }
 
@@ -58,7 +38,7 @@ export function AuthScreen() {
         </div>
       </div>
 
-      {step === 'email' ? (
+      {!sent ? (
         <div style={{ width: '100%' }}>
           <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 8 }}>
             メールアドレス
@@ -67,15 +47,20 @@ export function AuthScreen() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSendCode()}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="example@email.com"
-            style={{ ...inp, border: `1px solid ${email ? t.accent : t.border}` }}
+            style={{
+              width: '100%', background: t.bgCard,
+              border: `1px solid ${email ? t.accent : t.border}`,
+              borderRadius: 10, padding: '13px 16px', color: t.text,
+              fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 12,
+            }}
           />
           {error && (
             <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 12 }}>{error}</div>
           )}
           <button
-            onClick={handleSendCode}
+            onClick={handleSubmit}
             disabled={loading || !email.trim()}
             style={{
               width: '100%', padding: 14, borderRadius: 10, border: 'none',
@@ -84,64 +69,35 @@ export function AuthScreen() {
               cursor: email.trim() ? 'pointer' : 'default', transition: 'all 0.2s',
             }}
           >
-            {loading ? '送信中…' : '確認コードを送る'}
+            {loading ? '送信中…' : 'ログインリンクを送る'}
           </button>
           <div style={{ fontSize: 11, color: t.muted, textAlign: 'center', marginTop: 16, lineHeight: 1.7 }}>
-            メールアドレスに6桁のコードを送ります。<br />
+            メールアドレスにログイン用のリンクを送ります。<br />
             アカウントがない場合は自動で作成されます。
           </div>
         </div>
       ) : (
-        <div style={{ width: '100%' }}>
-          <div style={{
-            background: t.bgCard, border: `1px solid ${t.border}`,
-            borderRadius: 12, padding: '16px 18px', marginBottom: 20,
-            fontSize: 12, color: t.muted, lineHeight: 1.7, textAlign: 'center',
-          }}>
+        <div style={{
+          width: '100%', background: t.bgCard, border: `1px solid ${t.border}`,
+          borderRadius: 12, padding: 24, textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>📬</div>
+          <div style={{ fontSize: 15, color: t.text, fontWeight: 600, marginBottom: 8 }}>
+            メールを確認してください
+          </div>
+          <div style={{ fontSize: 12, color: t.muted, lineHeight: 1.7 }}>
             <span style={{ color: t.accent }}>{email}</span> に<br />
-            6桁のコードを送りました
+            ログインリンクを送りました。<br />
+            メール内のリンクをタップしてください。
           </div>
-          <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 8 }}>
-            確認コード（6桁）
-          </div>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={e => e.key === 'Enter' && handleVerify()}
-            placeholder="123456"
-            style={{
-              ...inp,
-              fontFamily: fontI, fontSize: 28, textAlign: 'center',
-              letterSpacing: '0.2em', color: t.accent, fontStyle: 'italic',
-              border: `1px solid ${code.length === 6 ? t.accent : t.border}`,
-            }}
-          />
-          {error && (
-            <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 12 }}>{error}</div>
-          )}
           <button
-            onClick={handleVerify}
-            disabled={loading || code.length !== 6}
+            onClick={() => setSent(false)}
             style={{
-              width: '100%', padding: 14, borderRadius: 10, border: 'none',
-              background: code.length === 6 ? t.accent : t.dim,
-              color: '#fff', fontSize: 14, fontWeight: 600,
-              cursor: code.length === 6 ? 'pointer' : 'default', transition: 'all 0.2s',
-            }}
-          >
-            {loading ? '確認中…' : 'ログイン'}
-          </button>
-          <button
-            onClick={() => { setStep('email'); setCode(''); setError('') }}
-            style={{
-              width: '100%', marginTop: 12, background: 'transparent', border: 'none',
+              marginTop: 20, background: 'transparent', border: 'none',
               color: t.muted, fontSize: 12, cursor: 'pointer', textDecoration: 'underline',
             }}
           >
-            メールアドレスを変更する
+            別のメールアドレスで試す
           </button>
         </div>
       )}
