@@ -5,3 +5,4 @@ export { BushitsuScreen } from "./BushitsuScreen";
 export { MyPageScreen } from "./MyPageScreen";
 export { SongDetailScreen } from "./SongDetailScreen";
 export { AuthScreen } from "./AuthScreen";
+export { OnboardingScreen } from "./OnboardingScreen";

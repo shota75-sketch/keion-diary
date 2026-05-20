@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { t, font } from "./theme";
 import type { InstrumentId } from "./theme";
+import { supabase } from "./lib/supabase";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import {
   AuthScreen, HomeScreen, RecordScreen, HistoryScreen,
-  BushitsuScreen, MyPageScreen, SongDetailScreen,
+  BushitsuScreen, MyPageScreen, SongDetailScreen, OnboardingScreen,
 } from "./screens";
 
 type TabId = "home" | "history" | "record" | "bushitsu" | "mypage";
@@ -22,10 +23,33 @@ function AppContent() {
   const { user, loading } = useAuth();
   const [tab, setTab] = useState<TabId>("home");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [name, setName] = useState("ゆうき");
+  const [name, setName] = useState("");
   const [instrument, setInstrument] = useState<InstrumentId>("guitar");
+  const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
 
-  if (loading) {
+  // ログイン後にオンボーディング済みかチェック
+  useEffect(() => {
+    if (!user) { setIsOnboarded(null); return; }
+    supabase
+      .from("users")
+      .select("is_onboarded, username, instrument")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setIsOnboarded(data.is_onboarded ?? false);
+          if (data.is_onboarded) {
+            setName(data.username);
+            setInstrument(data.instrument as InstrumentId);
+          }
+        } else {
+          setIsOnboarded(false);
+        }
+      });
+  }, [user]);
+
+  // ロード中
+  if (loading || (user && isOnboarded === null)) {
     return (
       <div style={{
         minHeight: "100vh", background: t.bg, display: "flex",
@@ -37,7 +61,21 @@ function AppContent() {
     );
   }
 
+  // 未ログイン
   if (!user) return <AuthScreen />;
+
+  // 初回ログイン：オンボーディング
+  if (!isOnboarded) {
+    return (
+      <OnboardingScreen
+        onComplete={(inst, n) => {
+          setInstrument(inst);
+          setName(n);
+          setIsOnboarded(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div style={{
@@ -53,7 +91,7 @@ function AppContent() {
       ) : (
         <>
           {tab === "home"     && <HomeScreen name={name} instrument={instrument} onSongTap={setSelectedSong} />}
-          {tab === "record"   && <RecordScreen instrument={instrument} />}
+          {tab === "record"   && <RecordScreen instrument={instrument} onSaved={() => setTab("home")} />}
           {tab === "history"  && <HistoryScreen />}
           {tab === "bushitsu" && <BushitsuScreen />}
           {tab === "mypage"   && (
@@ -71,6 +109,7 @@ function AppContent() {
           borderTop: `1px solid ${t.border}`, display: "flex",
           alignItems: "center", height: 60, zIndex: 100,
           boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+          paddingBottom: "env(safe-area-inset-bottom)",
         }}>
           {TABS.map(tb => tb.center ? (
             <button key={tb.id} onClick={() => setTab(tb.id)} style={{

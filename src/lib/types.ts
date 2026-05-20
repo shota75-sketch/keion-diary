@@ -4,6 +4,7 @@ export type DbUser = {
   instrument: string
   goal_min_monthly: number
   friend_code: string
+  is_onboarded: boolean
   created_at: string
 }
 

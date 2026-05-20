@@ -5,7 +5,7 @@ import type { InstrumentId } from '../theme'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
-type Props = { instrument: InstrumentId }
+type Props = { instrument: InstrumentId; onSaved?: () => void }
 
 const lbl = { fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 5 } as const
 const inp = {
@@ -14,7 +14,7 @@ const inp = {
   fontSize: 13, outline: 'none', boxSizing: 'border-box' as const,
 }
 
-export function RecordScreen({ instrument }: Props) {
+export function RecordScreen({ instrument, onSaved }: Props) {
   const { user } = useAuth()
   const [type, setType] = useState<'basic' | 'song'>('basic')
   const [detail, setDetail] = useState('')
@@ -98,7 +98,10 @@ export function RecordScreen({ instrument }: Props) {
 
     setSaving(false)
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setTimeout(() => {
+      setSaved(false)
+      onSaved?.()
+    }, 1500)
     setRunning(false)
     setElapsed(0)
     setManualMin('')
