@@ -19,7 +19,7 @@ export const fontI = `'Georgia','Times New Roman',serif`;
 
 export const INSTRUMENTS = [
   { id: "guitar",   label: "ギター",     icon: "🎸" },
-  { id: "bass",     label: "ベース",     icon: "🎵" },
+  { id: "bass",     label: "ベース",     icon: "🪕" },
   { id: "drums",    label: "ドラム",     icon: "🥁" },
   { id: "vocal",    label: "ボーカル",   icon: "🎤" },
   { id: "keyboard", label: "キーボード", icon: "🎹" },
