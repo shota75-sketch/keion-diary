@@ -167,12 +167,9 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
 
       {/* 連続日数カード */}
       <Card style={{ display: 'flex', alignItems: 'center', gap: 14, borderLeft: `3px solid ${t.accent}` }}>
-        <div style={{ textAlign: 'center', minWidth: 58 }}>
+        <div style={{ textAlign: 'center', minWidth: 52 }}>
           <div style={{ fontFamily: fontI, fontSize: 40, lineHeight: 1, color: t.accent, fontStyle: 'italic' }}>{streak}</div>
           <div style={{ fontSize: 9, color: t.muted, marginTop: 2, fontFamily: font }}>日連続</div>
-          <div style={{ height: 1, background: t.border, margin: '7px 0' }} />
-          <div style={{ fontFamily: fontI, fontSize: 18, lineHeight: 1, color: t.accentDim, fontStyle: 'italic' }}>{totalDays}</div>
-          <div style={{ fontSize: 9, color: t.muted, marginTop: 2, fontFamily: font }}>累計日</div>
         </div>
         <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 14 }}>
           <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}日練習！{dailyPraise}</div>

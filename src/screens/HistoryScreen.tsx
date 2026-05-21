@@ -132,6 +132,7 @@ export function HistoryScreen() {
   const monthCount = monthLogs.length
   const monthMin   = monthLogs.reduce((s, l) => s + l.duration_min, 0)
   const streak     = calcStreak(streakDates)
+  const totalDays  = new Set(streakDates).size
 
   const days = ['月', '火', '水', '木', '金', '土', '日']
   const monthLabel = isCurrentMonth ? '今月' : `${viewMonth}月`
@@ -140,9 +141,9 @@ export function HistoryScreen() {
     <Screen>
       <Header sub={`${viewYear}年 ${viewMonth}月`} title="練習の記録" />
 
-      {/* 統計3点 */}
-      <div style={{ display: 'flex', gap: 8, margin: '10px 14px 0' }}>
-        {[[`${monthCount}回`, monthLabel], [`${monthMin}分`, '合計'], [`${streak}日`, '連続']].map(([val, lb]) => (
+      {/* 統計4点 */}
+      <div style={{ display: 'flex', gap: 6, margin: '10px 14px 0' }}>
+        {[[`${monthCount}回`, monthLabel], [`${monthMin}分`, '合計'], [`${streak}日`, '連続'], [`${totalDays}日`, '累計']].map(([val, lb]) => (
           <div key={lb} style={{
             background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10,
             flex: 1, textAlign: 'center', padding: '12px 6px',
