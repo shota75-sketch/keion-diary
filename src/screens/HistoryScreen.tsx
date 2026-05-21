@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Screen, Header, Card, LogEditModal } from '../components'
 import { t, font, fontI } from '../theme'
 import { supabase } from '../lib/supabase'
@@ -16,11 +16,17 @@ export function HistoryScreen() {
   const [viewYear, setViewYear] = useState(now.getFullYear())
   const [viewMonth, setViewMonth] = useState(now.getMonth() + 1)
   const [monthLogs, setMonthLogs] = useState<DbPracticeLog[]>([])
-  const [allLogs, setAllLogs] = useState<DbPracticeLog[]>([])
+  const [streakDates, setStreakDates] = useState<string[]>([])
+  const [historyLogs, setHistoryLogs] = useState<DbPracticeLog[]>([])
+  const [historyOffset, setHistoryOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [menuLogId, setMenuLogId] = useState<string | null>(null)
   const [editLog, setEditLog] = useState<DbPracticeLog | null>(null)
   const [deleteLogTarget, setDeleteLogTarget] = useState<DbPracticeLog | null>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const PAGE_SIZE = 20
 
   const daysInMonth = new Date(viewYear, viewMonth, 0).getDate()
   const firstDay = new Date(viewYear, viewMonth - 1, 1).getDay()
@@ -47,6 +53,22 @@ export function HistoryScreen() {
     loadData()
   }, [user, viewYear, viewMonth])
 
+  useEffect(() => {
+    if (!user) return
+    reloadHistory()
+  }, [user])
+
+  useEffect(() => {
+    if (view !== 'history' || !hasMore || loadingMore) return
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadHistoryPage(historyOffset)
+    }, { threshold: 0.1 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [view, hasMore, loadingMore, historyOffset, user])
+
   const loadData = async () => {
     if (!user) return
     setLoading(true)
@@ -55,22 +77,42 @@ export function HistoryScreen() {
     const monthStart = `${yStr}-${mStr}-01`
     const monthEnd   = `${yStr}-${mStr}-${String(daysInMonth).padStart(2, '0')}`
 
-    const [{ data: mLogs }, { data: aLogs }] = await Promise.all([
+    const [{ data: mLogs }, { data: allDates }] = await Promise.all([
       supabase
         .from('practice_logs').select('*')
         .eq('user_id', user.id)
         .gte('practiced_at', monthStart).lte('practiced_at', monthEnd)
         .order('practiced_at', { ascending: false }),
       supabase
-        .from('practice_logs').select('*')
-        .eq('user_id', user.id)
-        .order('practiced_at', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(50),
+        .from('practice_logs').select('practiced_at')
+        .eq('user_id', user.id),
     ])
     setMonthLogs(mLogs ?? [])
-    setAllLogs(aLogs ?? [])
+    setStreakDates((allDates ?? []).map(l => l.practiced_at))
     setLoading(false)
+  }
+
+  const loadHistoryPage = async (offset: number) => {
+    if (!user) return
+    setLoadingMore(true)
+    const { data } = await supabase
+      .from('practice_logs').select('*')
+      .eq('user_id', user.id)
+      .order('practiced_at', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
+    const logs = data ?? []
+    setHistoryLogs(prev => offset === 0 ? logs : [...prev, ...logs])
+    setHasMore(logs.length === PAGE_SIZE)
+    setHistoryOffset(offset + logs.length)
+    setLoadingMore(false)
+  }
+
+  const reloadHistory = () => {
+    setHistoryLogs([])
+    setHistoryOffset(0)
+    setHasMore(true)
+    loadHistoryPage(0)
   }
 
   const deleteLog = async () => {
@@ -78,6 +120,7 @@ export function HistoryScreen() {
     await supabase.from('practice_logs').delete().eq('id', deleteLogTarget.id)
     setDeleteLogTarget(null)
     loadData()
+    reloadHistory()
   }
 
   const practicedDays = new Set(
@@ -88,7 +131,7 @@ export function HistoryScreen() {
 
   const monthCount = monthLogs.length
   const monthMin   = monthLogs.reduce((s, l) => s + l.duration_min, 0)
-  const streak     = calcStreak(allLogs.map(l => l.practiced_at))
+  const streak     = calcStreak(streakDates)
 
   const days = ['月', '火', '水', '木', '金', '土', '日']
   const monthLabel = isCurrentMonth ? '今月' : `${viewMonth}月`
@@ -228,12 +271,12 @@ export function HistoryScreen() {
         </>
       ) : (
         <div style={{ margin: '8px 14px 0', position: 'relative' }}>
-          {allLogs.length === 0 ? (
+          {historyLogs.length === 0 && !loadingMore ? (
             <div style={{ textAlign: 'center', color: t.dim, fontSize: 12, padding: '24px 0' }}>まだ練習記録がありません</div>
           ) : (
             <>
               <div style={{ position: 'absolute', left: 3, top: 0, bottom: 0, width: 1, background: `linear-gradient(to bottom,${t.accentDim}60,${t.border})` }} />
-              {allLogs.map((log, i) => (
+              {historyLogs.map((log, i) => (
                 <div key={log.id} style={{ display: 'flex', gap: 12, marginBottom: 7 }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: i === 0 ? t.accent : t.accentDim, border: `2px solid ${t.bg}`, marginTop: 7, flexShrink: 0, zIndex: 1 }} />
                   <div style={{
@@ -277,6 +320,13 @@ export function HistoryScreen() {
                   </div>
                 </div>
               ))}
+              <div ref={sentinelRef} style={{ height: 1 }} />
+              {loadingMore && (
+                <div style={{ textAlign: 'center', color: t.dim, fontSize: 11, padding: '12px 0' }}>読み込み中…</div>
+              )}
+              {!hasMore && historyLogs.length > 0 && (
+                <div style={{ textAlign: 'center', color: t.dim, fontSize: 11, padding: '12px 0', fontFamily: font }}>すべての記録を表示しました</div>
+              )}
             </>
           )}
         </div>
@@ -286,7 +336,7 @@ export function HistoryScreen() {
       {editLog && (
         <LogEditModal
           log={editLog}
-          onSaved={() => { setEditLog(null); loadData() }}
+          onSaved={() => { setEditLog(null); loadData(); reloadHistory() }}
           onClose={() => setEditLog(null)}
         />
       )}
