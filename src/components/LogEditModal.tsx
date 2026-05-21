@@ -42,7 +42,7 @@ export function LogEditModal({ log, onSaved, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        style={{ background: t.bgCard, borderRadius: '14px 14px 0 0', padding: '20px 18px 36px', width: '100%', maxWidth: 390 }}
+        style={{ background: t.bgCard, borderRadius: '14px 14px 0 0', padding: '20px 18px 36px', width: '100%', maxWidth: 390, maxHeight: '90vh', overflowY: 'auto' }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
