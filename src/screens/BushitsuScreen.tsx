@@ -11,7 +11,6 @@ type FriendInfo = {
   requestId: string
   user: DbUser
   recentLogs: DbPracticeLog[]
-  latestLog: DbPracticeLog | null
   streak: number
   practicedToday: boolean
 }
@@ -37,8 +36,6 @@ export function BushitsuScreen() {
   const [friends, setFriends] = useState<FriendInfo[]>([])
   const [pendingIn, setPendingIn] = useState<PendingRequest[]>([])
   const [pendingOut, setPendingOut] = useState<PendingRequest[]>([])
-  const [reactionCounts, setReactionCounts] = useState<Map<string, Record<string, number>>>(new Map())
-  const [myReactions, setMyReactions] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
   const [inputCode, setInputCode] = useState('')
@@ -77,9 +74,9 @@ export function BushitsuScreen() {
     }
 
     const reqs = requests as DbFriendRequest[]
-    const approved  = reqs.filter(r => r.status === 'approved')
-    const pendingI  = reqs.filter(r => r.status === 'pending' && r.to_user_id === user.id)
-    const pendingO  = reqs.filter(r => r.status === 'pending' && r.from_user_id === user.id)
+    const approved = reqs.filter(r => r.status === 'approved')
+    const pendingI = reqs.filter(r => r.status === 'pending' && r.to_user_id === user.id)
+    const pendingO = reqs.filter(r => r.status === 'pending' && r.from_user_id === user.id)
 
     const otherIds = [...new Set(reqs.map(r => r.from_user_id === user.id ? r.to_user_id : r.from_user_id))]
     const friendIds = approved.map(r => r.from_user_id === user.id ? r.to_user_id : r.from_user_id)
@@ -98,26 +95,6 @@ export function BushitsuScreen() {
 
     const userMap = new Map<string, DbUser>((otherUsers ?? []).map(u => [u.id, u]))
 
-    // 最新ログのIDを収集してリアクション取得
-    const latestLogMap = new Map<string, DbPracticeLog>()
-    for (const log of (friendLogs ?? []) as DbPracticeLog[]) {
-      if (!latestLogMap.has(log.user_id)) latestLogMap.set(log.user_id, log)
-    }
-    const latestLogIds = [...latestLogMap.values()].map(l => l.id)
-
-    const newReactionCounts = new Map<string, Record<string, number>>()
-    const newMyReactions = new Set<string>()
-
-    if (latestLogIds.length > 0) {
-      const { data: rxns } = await supabase.from('reactions').select('*').in('log_id', latestLogIds)
-      for (const rxn of rxns ?? []) {
-        if (!newReactionCounts.has(rxn.log_id)) newReactionCounts.set(rxn.log_id, {})
-        const c = newReactionCounts.get(rxn.log_id)!
-        c[rxn.emoji] = (c[rxn.emoji] ?? 0) + 1
-        if (rxn.from_user_id === user.id) newMyReactions.add(`${rxn.log_id}-${rxn.emoji}`)
-      }
-    }
-
     const friendInfoList: FriendInfo[] = approved.map(r => {
       const fid = r.from_user_id === user.id ? r.to_user_id : r.from_user_id
       const fu = userMap.get(fid)
@@ -127,7 +104,6 @@ export function BushitsuScreen() {
         requestId: r.id,
         user: fu,
         recentLogs: logs.slice(0, 3),
-        latestLog: logs[0] ?? null,
         streak: calcStreak(logs.map(l => l.practiced_at)),
         practicedToday: logs.some(l => l.practiced_at === today),
       }
@@ -144,8 +120,6 @@ export function BushitsuScreen() {
     setFriends(friendInfoList)
     setPendingIn(pendingInList)
     setPendingOut(pendingOutList)
-    setReactionCounts(newReactionCounts)
-    setMyReactions(newMyReactions)
     setLoading(false)
   }
 
@@ -199,36 +173,6 @@ export function BushitsuScreen() {
   const cancelRequest = async (id: string) => {
     await supabase.from('friend_requests').delete().eq('id', id)
     loadData()
-  }
-
-  const toggleReaction = async (logId: string, emoji: string) => {
-    if (!user) return
-    const key = `${logId}-${emoji}`
-    const already = myReactions.has(key)
-
-    // 楽観的更新（即座にUIに反映）
-    if (already) {
-      setMyReactions(prev => { const n = new Set(prev); n.delete(key); return n })
-      setReactionCounts(prev => {
-        const n = new Map(prev)
-        const c = { ...n.get(logId) }
-        c[emoji] = Math.max(0, (c[emoji] ?? 1) - 1)
-        n.set(logId, c)
-        return n
-      })
-      await supabase.from('reactions').delete()
-        .eq('from_user_id', user.id).eq('log_id', logId).eq('emoji', emoji)
-    } else {
-      setMyReactions(prev => new Set([...prev, key]))
-      setReactionCounts(prev => {
-        const n = new Map(prev)
-        const c = { ...n.get(logId) }
-        c[emoji] = (c[emoji] ?? 0) + 1
-        n.set(logId, c)
-        return n
-      })
-      await supabase.from('reactions').insert({ from_user_id: user.id, log_id: logId, emoji })
-    }
   }
 
   const inst = (id: string) => IMAP[id as InstrumentId] ?? IMAP.guitar
@@ -304,8 +248,6 @@ export function BushitsuScreen() {
           <>
             {friends.map(f => {
               const fi = inst(f.user.instrument)
-              const logId = f.latestLog?.id
-              const counts = logId ? (reactionCounts.get(logId) ?? {}) : {}
               return (
                 <div key={f.requestId} style={{
                   background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10,
@@ -322,7 +264,7 @@ export function BushitsuScreen() {
                     </div>
                   </div>
                   {f.recentLogs.length > 0 ? (
-                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', marginBottom: 9, paddingBottom: 2 }}>
+                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
                       {f.recentLogs.map((log, li) => (
                         <div key={log.id} style={{
                           flexShrink: 0, minWidth: 100,
@@ -344,28 +286,7 @@ export function BushitsuScreen() {
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontSize: 11, color: t.dim, marginBottom: 9, padding: '4px 0' }}>まだ練習記録がありません</div>
-                  )}
-                  {logId && (
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      {['🎸', '🔥', '👏'].map(emoji => {
-                        const key = `${logId}-${emoji}`
-                        const active = myReactions.has(key)
-                        const count = counts[emoji] ?? 0
-                        return (
-                          <button key={emoji} onClick={() => toggleReaction(logId, emoji)} style={{
-                            display: 'flex', alignItems: 'center', gap: 3,
-                            padding: '3px 9px', borderRadius: 14,
-                            border: `1px solid ${active ? t.accent : t.border}`,
-                            background: active ? t.accentBg : 'transparent',
-                            color: active ? t.accent : t.muted,
-                            fontSize: 12, cursor: 'pointer',
-                          }}>
-                            {emoji}{count > 0 && <span style={{ fontSize: 10, fontFamily: font }}>{count}</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
+                    <div style={{ fontSize: 11, color: t.dim, padding: '4px 0' }}>まだ練習記録がありません</div>
                   )}
                 </div>
               )
