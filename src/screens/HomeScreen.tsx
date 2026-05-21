@@ -164,7 +164,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
         </div>
         <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 14 }}>
           <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>
-            {monthCount === 0 ? '今月はまだ練習していないよ。最初の一歩を！' : `今月 ${monthCount}日練習！${dailyPraise}`}
+            {monthCount === 0 ? '今月はまだ。今日から始めよう！' : `今月 ${monthCount}日練習！${dailyPraise}`}
           </div>
           <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{dailyQuote}"</div>
         </div>
