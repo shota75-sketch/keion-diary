@@ -79,7 +79,6 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
   const [monthCount, setMonthCount] = useState(0)
   const [monthMin, setMonthMin] = useState(0)
   const [goalMin, setGoalMin] = useState(600)
-  const [totalDays, setTotalDays] = useState(0)
 
   useEffect(() => {
     if (!user) return
@@ -110,14 +109,11 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
     setMonthCount(new Set((monthLogs ?? []).map(l => l.practiced_at)).size)
     setMonthMin((monthLogs ?? []).reduce((s, l) => s + l.duration_min, 0))
 
-    // 連続日数（直近90日分）＋ 累計練習日数（全期間）
+    // 連続日数（直近90日分）
     const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
-    const [{ data: recentAllLogs }, { data: allTimeLogs }] = await Promise.all([
-      supabase.from('practice_logs').select('practiced_at').eq('user_id', user.id).gte('practiced_at', ninetyDaysAgo),
-      supabase.from('practice_logs').select('practiced_at').eq('user_id', user.id),
-    ])
+    const { data: recentAllLogs } = await supabase
+      .from('practice_logs').select('practiced_at').eq('user_id', user.id).gte('practiced_at', ninetyDaysAgo)
     setStreak(calcStreak((recentAllLogs ?? []).map(l => l.practiced_at)))
-    setTotalDays(new Set((allTimeLogs ?? []).map(l => l.practiced_at)).size)
 
     // 目標練習時間
     const { data: userGoal } = await supabase
