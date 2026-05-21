@@ -144,7 +144,7 @@ export function MyPageScreen({ onProfileLoad }: Props) {
           width: '100%', padding: 13, borderRadius: 9, border: 'none',
           background: saved ? t.green : t.accent,
           color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
-        }}>{saving ? '保存中…' : saved ? '✓ 保存した' : '保存する'}</button>
+        }}>{saving ? '保存中…' : saved ? '✓ 完了！' : '保存する'}</button>
       </div>
     </Screen>
   )
