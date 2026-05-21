@@ -74,9 +74,9 @@ export function SongDetailScreen({ song, instrument, onBack }: Props) {
       {/* 統計3点 */}
       <div style={{ display: 'flex', gap: 8, margin: '10px 14px 0' }}>
         {[
-          [logs.length + '回', '練習した'],
+          [logs.length + '回', '練習回数'],
           [totalMin + '分', '合計時間'],
-          [song.lastPracticed, '最後に'],
+          [song.lastPracticed, '最終練習日'],
         ].map(([val, lb]) => (
           <div key={lb} style={{
             background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10,
