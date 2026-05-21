@@ -68,12 +68,9 @@ export function AuthScreen() {
     }}>
       {/* ロゴ */}
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <div style={{ fontSize: 52, marginBottom: 12 }}>🎸</div>
-        <div style={{ fontFamily: fontI, fontSize: 28, color: t.accent, fontStyle: 'italic', marginBottom: 6 }}>
+        <div style={{ fontSize: 56, marginBottom: 10 }}>🎸</div>
+        <div style={{ fontFamily: "'Kaisei Opti', serif", fontSize: 30, fontWeight: 700, color: t.accent, letterSpacing: '0.08em' }}>
           軽音日記
-        </div>
-        <div style={{ fontSize: 12, color: t.muted, lineHeight: 1.6 }}>
-          続けること、それだけでいい。
         </div>
       </div>
 
