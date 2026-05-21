@@ -223,27 +223,39 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
             <div key={i} style={{
               background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 10,
               margin: '6px 0', display: 'flex', gap: 10, padding: 12,
+              borderLeft: `2px solid ${i === 0 ? t.accent : t.border}`,
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
-              <div style={{ minWidth: 34, textAlign: 'right' }}>
-                <div style={{ fontFamily: fontI, fontSize: 17, color: t.accent, fontStyle: 'italic', lineHeight: 1 }}>{log.duration_min}</div>
-                <div style={{ fontSize: 8, color: t.muted, marginTop: 1 }}>min</div>
+              <div style={{ minWidth: 34, textAlign: 'center', paddingTop: 2 }}>
+                <div style={{ fontSize: 10, color: i === 0 ? t.accent : t.muted, fontFamily: font, fontWeight: i === 0 ? 600 : 400, lineHeight: 1.3 }}>
+                  {fmtRelative(log.practiced_at)}
+                </div>
               </div>
               <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 10 }}>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 10, color: t.muted, fontFamily: font }}>{fmtRelative(log.practiced_at)}</span>
-                  <span style={{ fontSize: 11, color: t.text, fontWeight: 500, fontFamily: font }}>
-                    {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
-                  </span>
-                  {log.bpm && (
-                    <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
-                  )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+                    <span style={{
+                      fontSize: 10, padding: '1px 7px', borderRadius: 7,
+                      background: log.type === 'song' ? t.accentBg : '#eaf1fb',
+                      border: `1px solid ${log.type === 'song' ? t.accentDim : '#6a95c8'}`,
+                      color: log.type === 'song' ? t.accent : '#3a6ea8',
+                    }}>
+                      {log.type === 'song' ? '曲練習' : '基礎練'}
+                    </span>
+                    <span style={{ fontSize: 11, color: t.text, fontWeight: 500, fontFamily: font }}>
+                      {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
+                    </span>
+                    {log.bpm && (
+                      <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
+                    )}
+                  </div>
+                  <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic', flexShrink: 0, marginLeft: 6 }}>{log.duration_min} min</span>
                 </div>
                 {log.memo && (
                   <div style={{ fontSize: 11, color: t.muted, marginBottom: 3, lineHeight: 1.4 }}>{log.memo}</div>
                 )}
                 {log.one_word && (
-                  <div style={{ fontFamily: fontI, fontSize: 11, color: t.muted, fontStyle: 'italic' }}>"{log.one_word}"</div>
+                  <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{log.one_word}"</div>
                 )}
               </div>
             </div>
