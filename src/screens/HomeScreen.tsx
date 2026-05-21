@@ -119,7 +119,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
     if (userSongs && userSongs.length > 0) {
-      const songList = await Promise.all(
+      const rawList = await Promise.all(
         userSongs.map(async (s: { title: string }) => {
           const { data: songLogs } = await supabase
             .from('practice_logs')
@@ -128,13 +128,18 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
             .eq('song_name', s.title)
             .order('practiced_at', { ascending: false })
           const sessions = songLogs?.length ?? 0
-          const lastPracticed = songLogs?.[0]?.practiced_at
-            ? fmtRelative(songLogs[0].practiced_at)
-            : '未練習'
-          return { title: s.title, lastPracticed, sessions }
+          const raw = songLogs?.[0]?.practiced_at ?? null
+          const lastPracticed = raw ? fmtRelative(raw) : '未練習'
+          return { title: s.title, lastPracticed, sessions, raw }
         })
       )
-      setSongs(songList)
+      rawList.sort((a, b) => {
+        if (!a.raw && !b.raw) return 0
+        if (!a.raw) return 1
+        if (!b.raw) return -1
+        return b.raw.localeCompare(a.raw)
+      })
+      setSongs(rawList.map(({ raw: _, ...rest }) => rest))
     }
   }
 
