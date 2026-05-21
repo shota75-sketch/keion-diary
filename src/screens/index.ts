@@ -6,3 +6,4 @@ export { MyPageScreen } from "./MyPageScreen";
 export { SongDetailScreen } from "./SongDetailScreen";
 export { AuthScreen } from "./AuthScreen";
 export { OnboardingScreen } from "./OnboardingScreen";
+export { UpdatePasswordScreen } from "./UpdatePasswordScreen";

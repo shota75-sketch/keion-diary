@@ -9,13 +9,14 @@ const inp = {
 }
 
 export function AuthScreen() {
-  const { signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple } = useAuth()
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const { signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple, resetPasswordForEmail } = useAuth()
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [resetDone, setResetDone] = useState(false)
 
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) return
@@ -47,6 +48,16 @@ export function AuthScreen() {
     if (error) setError(`Appleログインに失敗しました: ${error.message}`)
   }
 
+  const handleReset = async () => {
+    if (!email.trim()) return
+    setLoading(true)
+    setError('')
+    const { error } = await resetPasswordForEmail(email.trim())
+    if (error) setError('メールの送信に失敗しました')
+    else setResetDone(true)
+    setLoading(false)
+  }
+
   const isReady = email.trim().length > 0 && password.length >= 6
 
   return (
@@ -66,7 +77,44 @@ export function AuthScreen() {
         </div>
       </div>
 
-      {done ? (
+      {mode === 'reset' ? (
+        resetDone ? (
+          <div style={{ width: '100%', background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24, textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>📬</div>
+            <div style={{ fontSize: 15, color: t.text, fontWeight: 600, marginBottom: 8 }}>リセットメールを送りました</div>
+            <div style={{ fontSize: 12, color: t.muted, lineHeight: 1.7 }}>
+              <span style={{ color: t.accent }}>{email}</span> に届いたメールのリンクをタップしてください。
+            </div>
+            <button onClick={() => { setMode('login'); setResetDone(false); setEmail('') }}
+              style={{ marginTop: 20, background: 'transparent', border: 'none', color: t.muted, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
+              ログイン画面に戻る
+            </button>
+          </div>
+        ) : (
+          <div style={{ width: '100%' }}>
+            <div style={{ fontSize: 14, color: t.text, fontWeight: 600, marginBottom: 6, fontFamily: font }}>パスワードをリセット</div>
+            <div style={{ fontSize: 12, color: t.muted, marginBottom: 16, lineHeight: 1.6 }}>登録したメールアドレスを入力してください。リセット用のリンクを送ります。</div>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleReset()}
+              placeholder="メールアドレス"
+              style={{ ...inp, border: `1px solid ${email ? t.accent : t.border}` }}
+            />
+            {error && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 10 }}>{error}</div>}
+            <button onClick={handleReset} disabled={loading || !email.trim()} style={{
+              width: '100%', padding: 14, borderRadius: 10, border: 'none',
+              background: email.trim() ? t.accent : t.dim,
+              color: '#fff', fontSize: 14, fontWeight: 600, cursor: email.trim() ? 'pointer' : 'default',
+            }}>
+              {loading ? '送信中…' : 'リセットメールを送る'}
+            </button>
+            <button onClick={() => { setMode('login'); setError('') }}
+              style={{ width: '100%', marginTop: 12, background: 'transparent', border: 'none', color: t.muted, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
+              ログイン画面に戻る
+            </button>
+          </div>
+        )
+      ) : done ? (
         <div style={{ width: '100%', background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 12, padding: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>📬</div>
           <div style={{ fontSize: 15, color: t.text, fontWeight: 600, marginBottom: 8 }}>確認メールを送りました</div>
@@ -132,6 +180,15 @@ export function AuthScreen() {
             placeholder={mode === 'signup' ? 'パスワード（6文字以上）' : 'パスワード'}
             style={{ ...inp, border: `1px solid ${password ? t.accent : t.border}` }}
           />
+
+          {mode === 'login' && (
+            <div style={{ textAlign: 'right', marginBottom: 6, marginTop: -4 }}>
+              <button onClick={() => { setMode('reset'); setError('') }}
+                style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}>
+                パスワードを忘れた方
+              </button>
+            </div>
+          )}
 
           {error && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 10 }}>{error}</div>}
 

@@ -21,6 +21,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import {
   AuthScreen, HomeScreen, RecordScreen, HistoryScreen,
   BushitsuScreen, MyPageScreen, SongDetailScreen, OnboardingScreen,
+  UpdatePasswordScreen,
 } from "./screens";
 
 type TabId = "home" | "history" | "record" | "bushitsu" | "mypage";
@@ -35,7 +36,7 @@ const TABS: { id: TabId; label: string; icon: string; center?: boolean }[] = [
 ];
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery } = useAuth();
   const isLandscape = useIsLandscape();
   const [tab, setTab] = useState<TabId>("home");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -78,7 +79,10 @@ function AppContent() {
   }
 
   // 未ログイン
-  if (!user) return <AuthScreen />;
+  if (!user) return <AuthScreen />
+
+  // パスワードリセット
+  if (isPasswordRecovery) return <UpdatePasswordScreen />;
 
   // 初回ログイン：オンボーディング
   if (!isOnboarded) {
