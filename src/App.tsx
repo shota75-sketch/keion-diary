@@ -31,7 +31,7 @@ const TABS: { id: TabId; label: string; icon: string; center?: boolean }[] = [
   { id: "history",  label: "履歴",   icon: "📅" },
   { id: "record",   label: "",        icon: "＋", center: true },
   { id: "bushitsu", label: "部室",   icon: "🚪" },
-  { id: "mypage",   label: "My",     icon: "👤" },
+  { id: "mypage",   label: "マイページ", icon: "👤" },
 ];
 
 function AppContent() {

@@ -108,7 +108,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
 
   return (
     <Screen>
-      <Header sub={`${inst.icon} ${inst.label}`} title={`${name}の放課後ノート`} />
+      <Header title={`${inst.icon}${name}の軽音ノート`} />
 
       {/* 連続日数カード */}
       <Card style={{ display: 'flex', alignItems: 'center', gap: 14, borderLeft: `3px solid ${t.accent}` }}>

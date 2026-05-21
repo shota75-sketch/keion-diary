@@ -71,7 +71,7 @@ export function MyPageScreen({ onProfileLoad }: Props) {
 
   return (
     <Screen>
-      <Header sub="設定" title="マイページ" />
+      <Header title="マイページ" />
 
       {/* アイコン＋ニックネーム */}
       <Card style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

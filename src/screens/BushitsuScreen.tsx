@@ -235,7 +235,7 @@ export function BushitsuScreen() {
 
   return (
     <Screen>
-      <Header sub={`招待制 · ${1 + friends.length}人`} title="部室" />
+      <Header title="部室" />
 
       {/* 自分のカード */}
       {myUser && (
