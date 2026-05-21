@@ -42,6 +42,7 @@ export function BushitsuScreen() {
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -175,6 +176,12 @@ export function BushitsuScreen() {
     loadData()
   }
 
+  const removeFriend = async (id: string) => {
+    await supabase.from('friend_requests').delete().eq('id', id)
+    setConfirmDelete(null)
+    loadData()
+  }
+
   const inst = (id: string) => IMAP[id as InstrumentId] ?? IMAP.guitar
 
   return (
@@ -262,7 +269,17 @@ export function BushitsuScreen() {
                       <div style={{ fontSize: 12, color: t.text, fontWeight: 500, fontFamily: font }}>{f.user.username}</div>
                       <div style={{ fontSize: 9, color: t.muted, fontFamily: font }}>{fi.label} · 🔥 {f.streak}日</div>
                     </div>
+                    <button
+                      onClick={() => setConfirmDelete(confirmDelete === f.requestId ? null : f.requestId)}
+                      style={{ background: 'transparent', border: 'none', color: t.dim, fontSize: 16, cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}
+                    >···</button>
                   </div>
+                  {confirmDelete === f.requestId && (
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
+                      <button onClick={() => removeFriend(f.requestId)} style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: '1px solid #c0392b', background: 'transparent', color: '#c0392b', fontSize: 12, cursor: 'pointer' }}>部室から外す</button>
+                      <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 12, cursor: 'pointer' }}>キャンセル</button>
+                    </div>
+                  )}
                   {f.recentLogs.length > 0 ? (
                     <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}>
                       {f.recentLogs.map((log, li) => (
