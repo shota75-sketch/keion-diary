@@ -47,6 +47,20 @@ const dayOfYear = Math.floor(
 )
 const dailyQuote = QUOTES[dayOfYear % QUOTES.length]
 
+const PRAISES = [
+  'コツコツえらい',
+  'その調子！',
+  'いい感じ！',
+  'いいペース！',
+  'ちゃんとやってる',
+  'えらすぎる',
+  'よく続けてる',
+  'いい積み上げ！',
+  '着実に積んでる',
+  '頑張ってる！',
+]
+const dailyPraise = PRAISES[dayOfYear % PRAISES.length]
+
 function fmtRelative(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
   if (diff === 0) return '今日'
@@ -157,7 +171,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
           <div style={{ fontSize: 9, color: t.muted, marginTop: 2 }}>日連続</div>
         </div>
         <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}回！コツコツえらい</div>
+          <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}回練習！{dailyPraise}</div>
           <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{dailyQuote}"</div>
         </div>
       </Card>
