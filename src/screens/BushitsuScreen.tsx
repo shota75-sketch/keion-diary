@@ -277,7 +277,7 @@ export function BushitsuScreen() {
                   </div>
                   {confirmDelete === f.requestId && (
                     <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
-                      <button onClick={() => { setDeleteTarget({ id: f.requestId, name: f.user.username }); setConfirmDelete(null) }} style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: '1px solid #c0392b', background: 'transparent', color: '#c0392b', fontSize: 12, cursor: 'pointer' }}>部室から外す</button>
+                      <button onClick={() => { setDeleteTarget({ id: f.requestId, name: f.user.username }); setConfirmDelete(null) }} style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: '1px solid #c0392b', background: 'transparent', color: '#c0392b', fontSize: 12, cursor: 'pointer' }}>削除する</button>
                       <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '7px 0', borderRadius: 8, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 12, cursor: 'pointer' }}>キャンセル</button>
                     </div>
                   )}
@@ -381,14 +381,14 @@ export function BushitsuScreen() {
           onClick={() => setDeleteTarget(null)}>
           <div style={{ background: t.bgCard, borderRadius: 14, padding: '24px 20px', width: '100%', maxWidth: 320, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 8, fontFamily: font }}>部室から外しますか？</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 8, fontFamily: font }}>削除しますか？</div>
             <div style={{ fontSize: 13, color: t.muted, marginBottom: 24, lineHeight: 1.6, fontFamily: font }}>
-              <span style={{ color: t.text, fontWeight: 500 }}>{deleteTarget.name}</span> さんを部室から外します。<br />
+              <span style={{ color: t.text, fontWeight: 500 }}>{deleteTarget.name}</span> さんを削除します。<br />
               この操作は取り消せません。
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 13, cursor: 'pointer' }}>キャンセル</button>
-              <button onClick={() => removeFriend(deleteTarget.id)} style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: 'none', background: '#c0392b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>外す</button>
+              <button onClick={() => removeFriend(deleteTarget.id)} style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: 'none', background: '#c0392b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>削除する</button>
             </div>
           </div>
         </div>
