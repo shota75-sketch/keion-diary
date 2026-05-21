@@ -23,6 +23,7 @@ export function SongDetailScreen({ song, instrument, onBack }: Props) {
       .eq('user_id', user.id)
       .eq('song_name', song.title)
       .order('practiced_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .then(({ data }) => {
         setLogs(data ?? [])
         setLoading(false)

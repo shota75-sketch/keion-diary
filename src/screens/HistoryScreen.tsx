@@ -61,9 +61,9 @@ export function HistoryScreen() {
     monthLogs.map(l => parseInt(l.practiced_at.slice(8, 10)))
   )
 
-  // その日のログ（複数あれば最初の1件）
-  const getSelLog = (day: number) =>
-    monthLogs.find(l => parseInt(l.practiced_at.slice(8, 10)) === day)
+  // その日のログ（複数件すべて取得）
+  const getSelLogs = (day: number) =>
+    monthLogs.filter(l => parseInt(l.practiced_at.slice(8, 10)) === day)
 
   // 月間統計
   const monthCount = new Set(monthLogs.map(l => l.practiced_at)).size
@@ -131,23 +131,28 @@ export function HistoryScreen() {
           </Card>
 
           {sel !== null && (() => {
-            const log = getSelLog(sel)
-            return log ? (
-              <Card style={{ borderLeft: `2px solid ${t.accent}` }}>
-                <div style={{ ...lbl, marginBottom: 8 }}>{month}月{sel}日</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, color: t.muted, background: t.accentBg, padding: '1px 8px', borderRadius: 8, border: `1px solid ${t.accentDim}` }}>
-                      {log.type === 'song' ? '曲練習' : '基礎練'}
-                    </span>
-                    <span style={{ fontSize: 12, color: t.text }}>
-                      {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
-                    </span>
-                  </div>
-                  <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
-                </div>
-                {log.one_word && <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{log.one_word}"</div>}
-              </Card>
+            const selLogs = getSelLogs(sel)
+            return selLogs.length > 0 ? (
+              <>
+                {selLogs.map((log, li) => (
+                  <Card key={log.id} style={{ borderLeft: `2px solid ${li === 0 ? t.accent : t.accentDim}` }}>
+                    {li === 0 && <div style={{ ...lbl, marginBottom: 8 }}>{month}月{sel}日（{selLogs.length}件）</div>}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <span style={{ fontSize: 10, color: t.muted, background: t.accentBg, padding: '1px 8px', borderRadius: 8, border: `1px solid ${t.accentDim}` }}>
+                          {log.type === 'song' ? '曲練習' : '基礎練'}
+                        </span>
+                        <span style={{ fontSize: 12, color: t.text }}>
+                          {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
+                        </span>
+                      </div>
+                      <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
+                    </div>
+                    {log.memo && <div style={{ fontSize: 11, color: t.muted, marginBottom: 4, lineHeight: 1.4 }}>{log.memo}</div>}
+                    {log.one_word && <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{log.one_word}"</div>}
+                  </Card>
+                ))}
+              </>
             ) : (
               <Card style={{ textAlign: 'center', color: t.muted, fontSize: 12 }}>この日は練習なし</Card>
             )

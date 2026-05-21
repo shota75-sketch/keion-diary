@@ -28,6 +28,8 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
   const [songs, setSongs] = useState<Song[]>([])
   const [streak, setStreak] = useState(0)
   const [monthCount, setMonthCount] = useState(0)
+  const [monthMin, setMonthMin] = useState(0)
+  const [goalMin, setGoalMin] = useState(600)
 
   useEffect(() => {
     if (!user) return
@@ -49,14 +51,14 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
       .limit(3)
     setRecentLogs(recent ?? [])
 
-    // 今月の練習日数
+    // 今月の練習セッション数と合計時間
     const { data: monthLogs } = await supabase
       .from('practice_logs')
-      .select('practiced_at')
+      .select('practiced_at, duration_min')
       .eq('user_id', user.id)
       .gte('practiced_at', monthStart)
-    const uniqueDays = new Set((monthLogs ?? []).map(l => l.practiced_at))
-    setMonthCount(uniqueDays.size)
+    setMonthCount((monthLogs ?? []).length)
+    setMonthMin((monthLogs ?? []).reduce((s, l) => s + l.duration_min, 0))
 
     // 連続日数（直近90日分）
     const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
@@ -66,6 +68,14 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
       .eq('user_id', user.id)
       .gte('practiced_at', ninetyDaysAgo)
     setStreak(calcStreak((allLogs ?? []).map(l => l.practiced_at)))
+
+    // 目標練習時間
+    const { data: userGoal } = await supabase
+      .from('users')
+      .select('goal_min_monthly')
+      .eq('id', user.id)
+      .single()
+    setGoalMin(userGoal?.goal_min_monthly ?? 600)
 
     // 練習曲一覧（最終練習日・セッション数）
     const { data: userSongs } = await supabase
@@ -93,6 +103,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
     }
   }
 
+  const progressPct = goalMin > 0 ? Math.min(100, Math.round(monthMin / goalMin * 100)) : 0
   const displayLogs = recentLogs.length > 0 ? recentLogs : []
 
   return (
@@ -109,6 +120,30 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
           <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}回 練習した</div>
           <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"続けること、それだけでいい。"</div>
         </div>
+      </Card>
+
+      {/* 月間目標進捗バー */}
+      <Card style={{ padding: '10px 14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em' }}>今月の目標</div>
+          <div style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>
+            {monthMin} / {goalMin} 分
+          </div>
+        </div>
+        <div style={{ background: t.bgInput, borderRadius: 4, height: 7, overflow: 'hidden', border: `1px solid ${t.border}` }}>
+          <div style={{
+            height: '100%',
+            width: `${progressPct}%`,
+            background: progressPct >= 100 ? t.green : t.accent,
+            borderRadius: 4,
+            transition: 'width 0.6s ease',
+          }} />
+        </div>
+        {progressPct >= 100 ? (
+          <div style={{ fontSize: 10, color: t.green, marginTop: 5, textAlign: 'right', fontFamily: font }}>🎉 今月の目標達成！</div>
+        ) : (
+          <div style={{ fontSize: 10, color: t.dim, marginTop: 5, textAlign: 'right', fontFamily: font }}>{progressPct}%</div>
+        )}
       </Card>
 
       {/* 練習中の曲 */}
@@ -161,6 +196,9 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
                     {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
                   </span>
                 </div>
+                {log.memo && (
+                  <div style={{ fontSize: 11, color: t.muted, marginBottom: 3, lineHeight: 1.4 }}>{log.memo}</div>
+                )}
                 {log.one_word && (
                   <div style={{ fontFamily: fontI, fontSize: 11, color: t.muted, fontStyle: 'italic' }}>"{log.one_word}"</div>
                 )}

@@ -19,6 +19,7 @@ export type DbPracticeLog = {
   one_word: string
   practiced_at: string  // YYYY-MM-DD
   created_at: string
+  bpm?: number
 }
 
 export type DbUserSong = {

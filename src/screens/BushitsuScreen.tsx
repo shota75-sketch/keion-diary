@@ -10,6 +10,7 @@ import { calcStreak } from '../lib/types'
 type FriendInfo = {
   requestId: string
   user: DbUser
+  recentLogs: DbPracticeLog[]
   latestLog: DbPracticeLog | null
   streak: number
   practicedToday: boolean
@@ -125,6 +126,7 @@ export function BushitsuScreen() {
       return {
         requestId: r.id,
         user: fu,
+        recentLogs: logs.slice(0, 3),
         latestLog: logs[0] ?? null,
         streak: calcStreak(logs.map(l => l.practiced_at)),
         practicedToday: logs.some(l => l.practiced_at === today),
@@ -290,7 +292,12 @@ export function BushitsuScreen() {
 
       {/* 部員リスト */}
       <div style={{ margin: '4px 14px 0' }}>
-        <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 8, fontFamily: font }}>部員</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', fontFamily: font }}>部員</div>
+          <button onClick={() => loadData()} disabled={loading} style={{ fontSize: 10, color: t.muted, background: 'transparent', border: `1px solid ${t.border}`, borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontFamily: font }}>
+            🔄 更新
+          </button>
+        </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', color: t.dim, fontSize: 12, padding: '24px 0' }}>読み込み中…</div>
@@ -319,20 +326,27 @@ export function BushitsuScreen() {
                       <div style={{ fontSize: 9, color: t.muted, fontFamily: font }}>{fi.label} · 🔥 {f.streak}日</div>
                     </div>
                   </div>
-                  {f.latestLog ? (
-                    <div style={{ background: t.bgInput, borderRadius: 7, padding: '9px 11px', marginBottom: 9, border: `1px solid ${t.border}` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                          <span style={{ fontSize: 10, color: t.muted, fontFamily: font }}>{fmtRelative(f.latestLog.practiced_at)}</span>
-                          {f.latestLog.song_name && (
-                            <span style={{ fontSize: 10, color: t.accent, background: t.accentBg, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.accentDim}`, fontFamily: font }}>{f.latestLog.song_name}</span>
+                  {f.recentLogs.length > 0 ? (
+                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', marginBottom: 9, paddingBottom: 2 }}>
+                      {f.recentLogs.map((log, li) => (
+                        <div key={log.id} style={{
+                          flexShrink: 0, minWidth: 100,
+                          background: li === 0 ? t.accentBg : t.bgInput,
+                          border: `1px solid ${li === 0 ? t.accentDim : t.border}`,
+                          borderRadius: 8, padding: '7px 10px',
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 9, color: t.muted, fontFamily: font }}>{fmtRelative(log.practiced_at)}</span>
+                            <span style={{ fontFamily: fontI, fontSize: 10, color: t.accent, fontStyle: 'italic' }}>{log.duration_min}min</span>
+                          </div>
+                          <div style={{ fontSize: 10, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 88 }}>
+                            {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
+                          </div>
+                          {li === 0 && log.one_word && (
+                            <div style={{ fontFamily: fontI, fontSize: 10, color: t.muted, fontStyle: 'italic', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 88 }}>"{log.one_word}"</div>
                           )}
                         </div>
-                        <span style={{ fontFamily: fontI, fontSize: 10, color: t.accent, fontStyle: 'italic' }}>{f.latestLog.duration_min}min</span>
-                      </div>
-                      {f.latestLog.one_word && (
-                        <div style={{ fontFamily: fontI, fontSize: 11, color: t.muted, fontStyle: 'italic' }}>"{f.latestLog.one_word}"</div>
-                      )}
+                      ))}
                     </div>
                   ) : (
                     <div style={{ fontSize: 11, color: t.dim, marginBottom: 9, padding: '4px 0' }}>まだ練習記録がありません</div>

@@ -28,6 +28,7 @@ export function RecordScreen({ instrument, onSaved }: Props) {
   const [manualMin, setManualMin] = useState('')
   const [memo, setMemo] = useState('')
   const [word, setWord] = useState('')
+  const [bpm, setBpm] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -99,6 +100,7 @@ export function RecordScreen({ instrument, onSaved }: Props) {
       memo,
       one_word: word,
       practiced_at: today,
+      bpm: bpm ? parseInt(bpm) : null,
     })
 
     setSaving(false)
@@ -114,6 +116,7 @@ export function RecordScreen({ instrument, onSaved }: Props) {
     setSong('')
     setMemo('')
     setWord('')
+    setBpm('')
   }
 
   return (
@@ -238,6 +241,30 @@ export function RecordScreen({ instrument, onSaved }: Props) {
             </div>
           </div>
         )}
+      </Card>
+
+      {/* BPM（任意） */}
+      <Card>
+        <div style={lbl}>BPM（任意）</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input
+            type="number"
+            value={bpm}
+            onChange={e => setBpm(e.target.value)}
+            placeholder="120"
+            style={{
+              width: 76, background: t.bgInput,
+              border: `1px solid ${bpm ? t.accent : t.border}`,
+              borderRadius: 8, padding: 10, color: t.accent,
+              fontFamily: fontI, fontSize: 24, fontStyle: 'italic',
+              outline: 'none', textAlign: 'center', boxSizing: 'border-box' as const,
+            }}
+          />
+          <div>
+            <div style={{ fontSize: 13, color: t.text, fontFamily: font }}>BPM</div>
+            <div style={{ fontSize: 10, color: t.dim, marginTop: 2 }}>目標や今日の最速テンポ</div>
+          </div>
+        </div>
       </Card>
 
       <Card>

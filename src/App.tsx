@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react";
 import { t, font } from "./theme";
+
+function useIsLandscape() {
+  const check = () => window.innerWidth > window.innerHeight && window.innerHeight < 500
+  const [isLandscape, setIsLandscape] = useState(check)
+  useEffect(() => {
+    const handler = () => setIsLandscape(check())
+    window.addEventListener('resize', handler)
+    window.addEventListener('orientationchange', handler)
+    return () => {
+      window.removeEventListener('resize', handler)
+      window.removeEventListener('orientationchange', handler)
+    }
+  }, [])
+  return isLandscape
+}
 import type { InstrumentId } from "./theme";
 import { supabase } from "./lib/supabase";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -21,6 +36,7 @@ const TABS: { id: TabId; label: string; icon: string; center?: boolean }[] = [
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const isLandscape = useIsLandscape();
   const [tab, setTab] = useState<TabId>("home");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [name, setName] = useState("");
@@ -74,6 +90,21 @@ function AppContent() {
           setIsOnboarded(true);
         }}
       />
+    );
+  }
+
+  if (isLandscape) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: t.bg, display: "flex",
+        alignItems: "center", justifyContent: "center",
+        flexDirection: "column", gap: 14, fontFamily: font,
+      }}>
+        <div style={{ fontSize: 48 }}>📱</div>
+        <div style={{ fontSize: 16, color: t.text, fontWeight: 600 }}>縦向きでご利用ください</div>
+        <div style={{ fontSize: 12, color: t.muted }}>端末を縦に向けてください</div>
+      </div>
     );
   }
 
@@ -149,4 +180,5 @@ export default function App() {
       <AppContent />
     </AuthProvider>
   );
+
 }
