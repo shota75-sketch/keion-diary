@@ -15,8 +15,8 @@ export type DbPracticeLog = {
   detail: string
   song_name: string
   duration_min: number
-  memo: string
-  one_word: string
+  memo: string | null
+  one_word: string | null
   practiced_at: string  // YYYY-MM-DD
   created_at: string
   bpm?: number

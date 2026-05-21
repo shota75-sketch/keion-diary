@@ -124,26 +124,21 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
     setGoalMin(userGoal?.goal_min_monthly ?? 600)
 
     // 練習曲一覧（最終練習日・セッション数）
-    const { data: userSongs } = await supabase
-      .from('user_songs')
-      .select('title')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+    const [{ data: userSongs }, { data: songLogs }] = await Promise.all([
+      supabase.from('user_songs').select('title').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('practice_logs').select('practiced_at, song_name').eq('user_id', user.id).eq('type', 'song').order('practiced_at', { ascending: false }),
+    ])
     if (userSongs && userSongs.length > 0) {
-      const rawList = await Promise.all(
-        userSongs.map(async (s: { title: string }) => {
-          const { data: songLogs } = await supabase
-            .from('practice_logs')
-            .select('practiced_at')
-            .eq('user_id', user.id)
-            .eq('song_name', s.title)
-            .order('practiced_at', { ascending: false })
-          const sessions = songLogs?.length ?? 0
-          const raw = songLogs?.[0]?.practiced_at ?? null
-          const lastPracticed = raw ? fmtRelative(raw) : '未練習'
-          return { title: s.title, lastPracticed, sessions, raw }
-        })
-      )
+      const logsBySong = new Map<string, string[]>()
+      for (const log of (songLogs ?? [])) {
+        if (!logsBySong.has(log.song_name)) logsBySong.set(log.song_name, [])
+        logsBySong.get(log.song_name)!.push(log.practiced_at)
+      }
+      const rawList = userSongs.map((s: { title: string }) => {
+        const dates = logsBySong.get(s.title) ?? []
+        const raw = dates[0] ?? null
+        return { title: s.title, lastPracticed: raw ? fmtRelative(raw) : '未練習', sessions: dates.length, raw }
+      })
       rawList.sort((a, b) => {
         if (!a.raw && !b.raw) return 0
         if (!a.raw) return 1

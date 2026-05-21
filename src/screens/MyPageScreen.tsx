@@ -52,7 +52,7 @@ export function MyPageScreen({ onProfileLoad }: Props) {
     await supabase.from('users').update({
       username: name,
       instrument,
-      goal_min_monthly: parseInt(goalMin) || 600,
+      goal_min_monthly: Math.max(0, parseInt(goalMin) || 600),
     }).eq('id', user.id)
     setSaved(true)
     onProfileLoad(instrument, name)
