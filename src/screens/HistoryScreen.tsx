@@ -145,6 +145,9 @@ export function HistoryScreen() {
                         <span style={{ fontSize: 12, color: t.text }}>
                           {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
                         </span>
+                        {log.bpm && (
+                          <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
+                        )}
                       </div>
                       <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
                     </div>
@@ -185,6 +188,9 @@ export function HistoryScreen() {
                         <span style={{ fontSize: 12, color: t.text }}>
                           {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
                         </span>
+                        {log.bpm && (
+                          <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
+                        )}
                       </div>
                       <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
                     </div>

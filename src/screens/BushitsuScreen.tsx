@@ -292,12 +292,7 @@ export function BushitsuScreen() {
 
       {/* 部員リスト */}
       <div style={{ margin: '4px 14px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', fontFamily: font }}>部員</div>
-          <button onClick={() => loadData()} disabled={loading} style={{ fontSize: 10, color: t.muted, background: 'transparent', border: `1px solid ${t.border}`, borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontFamily: font }}>
-            🔄 更新
-          </button>
-        </div>
+        <div style={{ fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 8, fontFamily: font }}>部員</div>
 
         {loading ? (
           <div style={{ textAlign: 'center', color: t.dim, fontSize: 12, padding: '24px 0' }}>読み込み中…</div>

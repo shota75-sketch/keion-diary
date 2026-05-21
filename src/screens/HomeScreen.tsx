@@ -190,11 +190,14 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
                 <div style={{ fontSize: 8, color: t.muted, marginTop: 1 }}>min</div>
               </div>
               <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 10 }}>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3 }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 10, color: t.muted, fontFamily: font }}>{fmtRelative(log.practiced_at)}</span>
                   <span style={{ fontSize: 11, color: t.text, fontWeight: 500, fontFamily: font }}>
                     {log.type === 'song' ? log.song_name : log.detail || '基礎練'}
                   </span>
+                  {log.bpm && (
+                    <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
+                  )}
                 </div>
                 {log.memo && (
                   <div style={{ fontSize: 11, color: t.muted, marginBottom: 3, lineHeight: 1.4 }}>{log.memo}</div>
