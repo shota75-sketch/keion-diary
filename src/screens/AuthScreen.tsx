@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { t, font, fontI } from '../theme'
+import { t, font } from '../theme'
 import { useAuth } from '../context/AuthContext'
 
 const inp = {
