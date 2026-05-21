@@ -79,6 +79,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
   const [monthCount, setMonthCount] = useState(0)
   const [monthMin, setMonthMin] = useState(0)
   const [goalMin, setGoalMin] = useState(600)
+  const [totalDays, setTotalDays] = useState(0)
 
   useEffect(() => {
     if (!user) return
@@ -100,23 +101,23 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
       .limit(3)
     setRecentLogs(recent ?? [])
 
-    // 今月の練習セッション数と合計時間
+    // 今月のユニーク練習日数と合計時間
     const { data: monthLogs } = await supabase
       .from('practice_logs')
       .select('practiced_at, duration_min')
       .eq('user_id', user.id)
       .gte('practiced_at', monthStart)
-    setMonthCount((monthLogs ?? []).length)
+    setMonthCount(new Set((monthLogs ?? []).map(l => l.practiced_at)).size)
     setMonthMin((monthLogs ?? []).reduce((s, l) => s + l.duration_min, 0))
 
-    // 連続日数（直近90日分）
+    // 連続日数（直近90日分）＋ 累計練習日数（全期間）
     const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
-    const { data: allLogs } = await supabase
-      .from('practice_logs')
-      .select('practiced_at')
-      .eq('user_id', user.id)
-      .gte('practiced_at', ninetyDaysAgo)
-    setStreak(calcStreak((allLogs ?? []).map(l => l.practiced_at)))
+    const [{ data: recentAllLogs }, { data: allTimeLogs }] = await Promise.all([
+      supabase.from('practice_logs').select('practiced_at').eq('user_id', user.id).gte('practiced_at', ninetyDaysAgo),
+      supabase.from('practice_logs').select('practiced_at').eq('user_id', user.id),
+    ])
+    setStreak(calcStreak((recentAllLogs ?? []).map(l => l.practiced_at)))
+    setTotalDays(new Set((allTimeLogs ?? []).map(l => l.practiced_at)).size)
 
     // 目標練習時間
     const { data: userGoal } = await supabase
@@ -171,8 +172,9 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
           <div style={{ fontSize: 9, color: t.muted, marginTop: 2 }}>日連続</div>
         </div>
         <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}回練習！{dailyPraise}</div>
-          <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{dailyQuote}"</div>
+          <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}日練習！{dailyPraise}</div>
+          <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic', marginBottom: 6 }}>"{dailyQuote}"</div>
+          <div style={{ fontSize: 10, color: t.muted, fontFamily: font }}>累計 <span style={{ fontFamily: fontI, fontSize: 12, color: t.accent, fontStyle: 'italic' }}>{totalDays}</span> 日練習した</div>
         </div>
       </Card>
 
