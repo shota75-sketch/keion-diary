@@ -139,7 +139,12 @@ export function HistoryScreen() {
                     {li === 0 && <div style={{ ...lbl, marginBottom: 8 }}>{month}月{sel}日（{selLogs.length}件）</div>}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <span style={{ fontSize: 10, color: t.muted, background: t.accentBg, padding: '1px 8px', borderRadius: 8, border: `1px solid ${t.accentDim}` }}>
+                        <span style={{
+                          fontSize: 10, padding: '1px 8px', borderRadius: 8,
+                          background: log.type === 'song' ? t.accentBg : '#eaf1fb',
+                          border: `1px solid ${log.type === 'song' ? t.accentDim : '#6a95c8'}`,
+                          color: log.type === 'song' ? t.accent : '#3a6ea8',
+                        }}>
                           {log.type === 'song' ? '曲練習' : '基礎練'}
                         </span>
                         <span style={{ fontSize: 12, color: t.text }}>
@@ -182,7 +187,12 @@ export function HistoryScreen() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <span style={{ fontSize: 10, color: t.muted }}>{log.practiced_at.slice(5).replace('-', '/')}</span>
-                        <span style={{ fontSize: 10, color: t.muted, background: t.accentBg, padding: '1px 7px', borderRadius: 7, border: `1px solid ${t.accentDim}` }}>
+                        <span style={{
+                          fontSize: 10, padding: '1px 7px', borderRadius: 7,
+                          background: log.type === 'song' ? t.accentBg : '#eaf1fb',
+                          border: `1px solid ${log.type === 'song' ? t.accentDim : '#6a95c8'}`,
+                          color: log.type === 'song' ? t.accent : '#3a6ea8',
+                        }}>
                           {log.type === 'song' ? '曲練習' : '基礎練'}
                         </span>
                         <span style={{ fontSize: 12, color: t.text }}>
