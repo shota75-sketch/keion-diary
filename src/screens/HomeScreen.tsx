@@ -12,6 +12,41 @@ type Props = { name: string; instrument: InstrumentId; onSongTap: (song: Song) =
 
 const lbl = { fontSize: 10, color: t.muted, letterSpacing: '0.08em', marginBottom: 5 } as const
 
+// H=ユーモア, E=楽しさ, B=背中押し の順で偏らないよう配置
+// パターン: H,H,E,H,B の繰り返し
+const QUOTES = [
+  "「もう1回だけ」が気づいたら1時間になってた。",         // H
+  "耳コピ、なんか違う。でもまあいい。",                   // H
+  "好きな曲を弾いてる。それだけでいい。",                 // E
+  "速い曲、ゆっくりなら弾ける。問題はそこじゃない。",     // H
+  "今日も弾いた。それだけで十分。",                       // B
+  "「なんかおかしい」の原因、30分後に気づいた。",         // H
+  "練習中はできた。なぜ本番でできないのか。",             // H
+  "音を出すだけで楽しい。今日もそれでいい。",             // E
+  "完璧に演奏できたのに、録音してなかった。",             // H
+  "短くても、弾いた日は弾いた日。",                       // B
+  "音楽って難しい。でも楽しい。たぶん。",                 // H
+  "先輩のアドバイス、やっと意味がわかってきた。",         // H
+  "うまくなくても音楽は楽しい。たぶん。",                 // E
+  "休憩のつもりが30分経ってた。",                         // H
+  "毎日じゃなくていい。また弾けばいい。",                 // B
+  "うまくなってる気がする日と、そうじゃない日がある。",   // H
+  "メトロノーム、いつか友達になれる気がする。",           // H
+  "弾きたいから弾く。それ以上の理由はいらない。",         // E
+  "録音して聴いたら思ったより下手だった。でも昨日よりうまい。", // H
+  "昨日より少しだけ。それで十分。",                       // B
+  "テンポ、ちょっとずれてた。まあいい。",                 // H
+  "チューニングだけで10分かかった。それも練習。",         // H
+  "完璧じゃなくていい。弾いた事実は残る。",               // B
+  "練習してない曲、本番でなんとかなった（気がする）。",   // H
+  "気づいたら1時間経ってた。いい練習だった。",            // B
+]
+
+const dayOfYear = Math.floor(
+  (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
+)
+const dailyQuote = QUOTES[dayOfYear % QUOTES.length]
+
 function fmtRelative(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
   if (diff === 0) return '今日'
@@ -118,7 +153,7 @@ export function HomeScreen({ name, instrument, onSongTap }: Props) {
         </div>
         <div style={{ flex: 1, borderLeft: `1px solid ${t.border}`, paddingLeft: 14 }}>
           <div style={{ fontSize: 12, color: t.text, marginBottom: 5 }}>今月 {monthCount}回 練習した</div>
-          <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"続けること、それだけでいい。"</div>
+          <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{dailyQuote}"</div>
         </div>
       </Card>
 
