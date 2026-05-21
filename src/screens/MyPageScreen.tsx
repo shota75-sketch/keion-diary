@@ -23,7 +23,6 @@ export function MyPageScreen({ onProfileLoad }: Props) {
   const [name, setName] = useState('')
   const [instrument, setInstrument] = useState<InstrumentId>('guitar')
   const [goalMin, setGoalMin] = useState('600')
-  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -50,13 +49,11 @@ export function MyPageScreen({ onProfileLoad }: Props) {
 
   const handleSave = async () => {
     if (!user) return
-    setSaving(true)
     await supabase.from('users').update({
       username: name,
       instrument,
       goal_min_monthly: parseInt(goalMin) || 600,
     }).eq('id', user.id)
-    setSaving(false)
     setSaved(true)
     onProfileLoad(instrument, name)
     setTimeout(() => setSaved(false), 2000)
@@ -140,11 +137,11 @@ export function MyPageScreen({ onProfileLoad }: Props) {
       </Card>
 
       <div style={{ padding: '6px 14px 24px' }}>
-        <button onClick={handleSave} disabled={saving} style={{
+        <button onClick={handleSave} style={{
           width: '100%', padding: 13, borderRadius: 9, border: 'none',
           background: saved ? t.green : t.accent,
           color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
-        }}>{saving ? '保存中…' : saved ? '✓ 完了！' : '保存する'}</button>
+        }}>{saved ? '✓ 完了！' : '保存する'}</button>
       </div>
     </Screen>
   )
