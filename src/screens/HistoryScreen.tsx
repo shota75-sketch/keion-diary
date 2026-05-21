@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Screen, Header, Card } from '../components'
+import { Screen, Header, Card, LogEditModal } from '../components'
 import { t, font, fontI } from '../theme'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -18,6 +18,9 @@ export function HistoryScreen() {
   const [monthLogs, setMonthLogs] = useState<DbPracticeLog[]>([])
   const [allLogs, setAllLogs] = useState<DbPracticeLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [menuLogId, setMenuLogId] = useState<string | null>(null)
+  const [editLog, setEditLog] = useState<DbPracticeLog | null>(null)
+  const [deleteLogTarget, setDeleteLogTarget] = useState<DbPracticeLog | null>(null)
 
   const daysInMonth = new Date(viewYear, viewMonth, 0).getDate()
   const firstDay = new Date(viewYear, viewMonth - 1, 1).getDay()
@@ -68,6 +71,13 @@ export function HistoryScreen() {
     setMonthLogs(mLogs ?? [])
     setAllLogs(aLogs ?? [])
     setLoading(false)
+  }
+
+  const deleteLog = async () => {
+    if (!deleteLogTarget) return
+    await supabase.from('practice_logs').delete().eq('id', deleteLogTarget.id)
+    setDeleteLogTarget(null)
+    loadData()
   }
 
   const practicedDays = new Set(
@@ -172,8 +182,8 @@ export function HistoryScreen() {
                 {selLogs.map((log, li) => (
                   <Card key={log.id} style={{ borderLeft: `2px solid ${li === 0 ? t.accent : t.accentDim}` }}>
                     {li === 0 && <div style={{ ...lbl, marginBottom: 8 }}>{viewMonth}月{sel}日（{selLogs.length}件）</div>}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
                         <span style={{
                           fontSize: 10, padding: '1px 8px', borderRadius: 8,
                           background: log.type === 'song' ? t.accentBg : '#eaf1fb',
@@ -189,8 +199,20 @@ export function HistoryScreen() {
                           <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
                         )}
                       </div>
-                      <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
+                        <button onClick={() => setMenuLogId(menuLogId === log.id ? null : log.id)}
+                          style={{ background: 'transparent', border: 'none', color: t.dim, fontSize: 14, cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>···</button>
+                      </div>
                     </div>
+                    {menuLogId === log.id && (
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                        <button onClick={() => { setEditLog(log); setMenuLogId(null) }}
+                          style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 11, cursor: 'pointer' }}>編集</button>
+                        <button onClick={() => { setDeleteLogTarget(log); setMenuLogId(null) }}
+                          style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: '1px solid #c0392b', background: 'transparent', color: '#c0392b', fontSize: 11, cursor: 'pointer' }}>削除</button>
+                      </div>
+                    )}
                     {log.memo && <div style={{ fontSize: 11, color: t.muted, marginBottom: 4, lineHeight: 1.4 }}>{log.memo}</div>}
                     {log.one_word && <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{log.one_word}"</div>}
                   </Card>
@@ -219,8 +241,8 @@ export function HistoryScreen() {
                     flex: 1, padding: 12, borderLeft: `2px solid ${i === 0 ? t.accent : t.border}`,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
                         <span style={{ fontSize: 10, color: t.muted }}>{log.practiced_at.slice(5).replace('-', '/')}</span>
                         <span style={{
                           fontSize: 10, padding: '1px 7px', borderRadius: 7,
@@ -237,14 +259,53 @@ export function HistoryScreen() {
                           <span style={{ fontSize: 9, color: t.muted, background: t.bgSub, padding: '1px 6px', borderRadius: 6, border: `1px solid ${t.border}`, fontFamily: font }}>bpm: {log.bpm}</span>
                         )}
                       </div>
-                      <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontFamily: fontI, fontSize: 11, color: t.accent, fontStyle: 'italic' }}>{log.duration_min} min</span>
+                        <button onClick={() => setMenuLogId(menuLogId === log.id ? null : log.id)}
+                          style={{ background: 'transparent', border: 'none', color: t.dim, fontSize: 14, cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>···</button>
+                      </div>
                     </div>
+                    {menuLogId === log.id && (
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                        <button onClick={() => { setEditLog(log); setMenuLogId(null) }}
+                          style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 11, cursor: 'pointer' }}>編集</button>
+                        <button onClick={() => { setDeleteLogTarget(log); setMenuLogId(null) }}
+                          style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: '1px solid #c0392b', background: 'transparent', color: '#c0392b', fontSize: 11, cursor: 'pointer' }}>削除</button>
+                      </div>
+                    )}
                     {log.one_word && <div style={{ fontFamily: fontI, fontSize: 11, color: t.accentDim, fontStyle: 'italic' }}>"{log.one_word}"</div>}
                   </div>
                 </div>
               ))}
             </>
           )}
+        </div>
+      )}
+
+      {/* ログ編集モーダル */}
+      {editLog && (
+        <LogEditModal
+          log={editLog}
+          onSaved={() => { setEditLog(null); loadData() }}
+          onClose={() => setEditLog(null)}
+        />
+      )}
+
+      {/* ログ削除確認モーダル */}
+      {deleteLogTarget && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '0 32px' }}
+          onClick={() => setDeleteLogTarget(null)}>
+          <div style={{ background: t.bgCard, borderRadius: 14, padding: '24px 20px', width: '100%', maxWidth: 320 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 8, fontFamily: font }}>練習記録を削除しますか？</div>
+            <div style={{ fontSize: 13, color: t.muted, marginBottom: 24, lineHeight: 1.6, fontFamily: font }}>
+              {deleteLogTarget.practiced_at.slice(5).replace('-', '/')} の記録を削除します。<br />この操作は取り消せません。
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setDeleteLogTarget(null)} style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 13, cursor: 'pointer' }}>キャンセル</button>
+              <button onClick={deleteLog} style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: 'none', background: '#c0392b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>削除する</button>
+            </div>
+          </div>
         </div>
       )}
     </Screen>
