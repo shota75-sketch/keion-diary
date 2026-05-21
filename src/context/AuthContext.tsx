@@ -14,6 +14,7 @@ type AuthContextType = {
   signInWithGoogle: () => Promise<{ error: Error | null }>
   signInWithApple: () => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  deleteAccount: () => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -82,8 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  const deleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_user')
+    if (!error) await supabase.auth.signOut()
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signInWithEmail, verifyOtp, signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signInWithEmail, verifyOtp, signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple, signOut, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   )

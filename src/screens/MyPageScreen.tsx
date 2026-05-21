@@ -18,13 +18,16 @@ type Props = {
 }
 
 export function MyPageScreen({ onProfileLoad }: Props) {
-  const { user, signOut } = useAuth()
+  const { user, signOut, deleteAccount } = useAuth()
   const [profile, setProfile] = useState<DbUser | null>(null)
   const [name, setName] = useState('')
   const [instrument, setInstrument] = useState<InstrumentId>('guitar')
   const [goalMin, setGoalMin] = useState('600')
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -134,6 +137,9 @@ export function MyPageScreen({ onProfileLoad }: Props) {
         <button onClick={signOut} style={{ width: '100%', padding: 11, borderRadius: 9, border: `1px solid ${t.border}`, background: t.bgInput, color: t.muted, fontSize: 12, cursor: 'pointer' }}>
           サインアウト
         </button>
+        <button onClick={() => setShowDeleteConfirm(true)} style={{ width: '100%', marginTop: 10, padding: 9, borderRadius: 9, border: 'none', background: 'transparent', color: t.dim, fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}>
+          アカウントを削除する
+        </button>
       </Card>
 
       <div style={{ padding: '6px 14px 24px' }}>
@@ -143,6 +149,35 @@ export function MyPageScreen({ onProfileLoad }: Props) {
           color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s',
         }}>{saved ? '✓ 完了！' : '保存する'}</button>
       </div>
+
+      {showDeleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '0 32px' }}
+          onClick={() => { setShowDeleteConfirm(false); setDeleteError('') }}>
+          <div style={{ background: t.bgCard, borderRadius: 14, padding: '24px 20px', width: '100%', maxWidth: 320 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 8, fontFamily: font }}>アカウントを削除しますか？</div>
+            <div style={{ fontSize: 13, color: t.muted, marginBottom: 24, lineHeight: 1.7, fontFamily: font }}>
+              練習記録・曲リスト・フレンド情報など、すべてのデータが削除されます。<br />
+              この操作は取り消せません。
+            </div>
+            {deleteError && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 12 }}>{deleteError}</div>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteError('') }}
+                style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: `1px solid ${t.border}`, background: 'transparent', color: t.muted, fontSize: 13, cursor: 'pointer' }}>
+                キャンセル
+              </button>
+              <button onClick={async () => {
+                setDeleting(true)
+                const { error } = await deleteAccount()
+                if (error) { setDeleteError('削除に失敗しました'); setDeleting(false) }
+              }} disabled={deleting}
+                style={{ flex: 1, padding: '11px 0', borderRadius: 9, border: 'none', background: '#c0392b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {deleting ? '削除中…' : '削除する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Screen>
   )
 }
